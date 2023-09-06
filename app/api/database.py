@@ -1,23 +1,24 @@
+from datetime import datetime
 from typing import List
 
 import motor.motor_asyncio
 from bson import Binary
 from bson.objectid import ObjectId
-from config.settings import (MONGODB_COLLECTION_NAME, MONGODB_CONNECTION_STRING,
-                             MONGODB_DB_NAME)
+from config.settings import (MONGODB_COLLECTION_NAME,
+                             MONGODB_CONNECTION_STRING, MONGODB_DB_NAME)
 from fastapi import HTTPException, status
-from .models.user import UserBase, CreateUser
+
+from .schemas.user import InputUser, OutputUser, UpdateUser
+
+client = motor.motor_asyncio.AsyncIOMotorClient(MONGODB_CONNECTION_STRING)
+database = client[MONGODB_DB_NAME]
+user_collection = database[MONGODB_COLLECTION_NAME]
 
 
-client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_CONNECTION_STRING)
-database = client[MONGO_DB_NAME]
-user_collection = database[MONGO_COLLECTION_NAME]
-
-
-async def retrieve_user(id: str) -> UserBase:
+async def retrieve_user(id: str) -> OutputUser:
     user = await user_collection.find_one({"_id": ObjectId(id)})
     if user:
-        user = UserBase(**user)
+        user = OutputUser(**user)
         return user
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
@@ -25,18 +26,17 @@ async def retrieve_user(id: str) -> UserBase:
     )
 
 
-async def retrieve_users() -> List[UserBase]:
+async def retrieve_users() -> List[OutputUser]:
     users = []
     async for user in user_collection.find():
-        users.append(UserBase(**user))
+        users.append(OutputUser(**user))
     return users
 
 
-async def upload_user(userdata: CreateUser) -> dict:
-
-    result = await user_collection.insert_one(userdata)
+async def add_user(user_data: InputUser) -> OutputUser:
+    result = await user_collection.insert_one(user_data.model_dump())
     created_user = await user_collection.find_one({"_id": result.inserted_id})
-    created_user = UserBase(**created_user)
+    created_user = OutputUser(**created_user)
     return created_user
 
 
@@ -48,3 +48,22 @@ async def remove_user(id: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User with id {id} not found",
         )
+
+
+async def upload_user_photo(user_data: UpdateUser) -> OutputUser:
+    updated_user = await user_collection.find_one_and_update(
+        {"_id": ObjectId(user_data.id)},
+        {"$set": {"photo": (
+            user_data.photo), "updated_at": user_data.updated_at}},
+    )
+    if updated_user:
+        return OutputUser(**updated_user)
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"User with id {id} not found",
+    )
+
+
+async def get_user_photo(id: str) -> bytes:
+    user = await user_collection.find_one({"_id": ObjectId(id)})
+    return user["photo"]
