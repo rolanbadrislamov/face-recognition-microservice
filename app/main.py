@@ -1,9 +1,9 @@
-from api.routers.users import router as UserRouter
+from app.api.routers.profiles import router as UserRouter
 from fastapi import FastAPI
 
 app = FastAPI()
 
-app.include_router(UserRouter, tags=["User"])
+app.include_router(UserRouter, tags=["Profiles"])
 
 
 @app.get("/", tags=["ROOT"])
