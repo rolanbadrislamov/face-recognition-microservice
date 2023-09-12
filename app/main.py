@@ -1,8 +1,14 @@
-from app.api.routers.profiles import router as UserRouter
 from fastapi import FastAPI
+
+from app.api.routers.profiles import router as UserRouter
+from app.config.settings import Settings
 
 app = FastAPI()
 
+try:
+    Settings.validate()
+except ValueError as e:
+    print(f"Error: {e}")
 app.include_router(UserRouter, tags=["Profiles"])
 
 

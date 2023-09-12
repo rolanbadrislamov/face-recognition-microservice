@@ -2,61 +2,55 @@ from typing import List
 
 import motor.motor_asyncio
 from bson.objectid import ObjectId
-from app.config.settings import (MONGODB_COLLECTION_NAME,
-                             MONGODB_CONNECTION_STRING, MONGODB_DB_NAME)
 from fastapi import HTTPException, status
 
-from app.api.schemas.profile import (ProfileInput, ProfileOutput, ProfilePhotoInfo,
-                              ProfileUpdate)
+from app.api.models.profile import (ProfileInput, ProfileOutput,
+                                    ProfilePhotoInfo, ProfilePhotoUpdate)
+from app.config.settings import Settings
 
-client = motor.motor_asyncio.AsyncIOMotorClient(MONGODB_CONNECTION_STRING)
-database = client[MONGODB_DB_NAME]
-user_collection = database[MONGODB_COLLECTION_NAME]
+client = motor.motor_asyncio.AsyncIOMotorClient(
+    Settings.get_db_connection())
+database = client[Settings.app_settings["db_name"]]
+profiles_collection = database["profiles"]
 
 
 async def retrieve_profile(id: str) -> ProfileOutput:
-    user = await user_collection.find_one({"_id": ObjectId(id)})
-    if user:
-        user = ProfileOutput(**user)
-        return user
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"User with id {id} not found",
-    )
+    profile = await profiles_collection.find_one({"_id": ObjectId(id)})
+    if profile:
+        profile = ProfileOutput(**profile)
+        return profile
 
 
 async def retrieve_profiles() -> List[ProfileOutput]:
-    users = []
-    async for user in user_collection.find():
-        users.append(ProfileOutput(**user))
-    return users
+    profiles = []
+    async for profile in profiles_collection.find():
+        profiles.append(ProfileOutput(**profile))
+    return profiles
 
 
-async def add_profile(user_data: ProfileInput) -> ProfileInput:
-    result = await user_collection.insert_one(user_data.model_dump())
-    created_user = await user_collection.find_one({"_id": result.inserted_id})
-    created_user = ProfileOutput(**created_user)
-    return created_user
+async def add_profile(profile_data: ProfileInput) -> ProfileInput:
+    result = await profiles_collection.insert_one(profile_data.model_dump())
+    created_profile = await profiles_collection.find_one({"_id": result.inserted_id})
+    created_profile = ProfileOutput(**created_profile)
+    return created_profile
 
 
 async def remove_profile(id: str):
     try:
-        await user_collection.delete_one({"_id": ObjectId(id)})
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with id {id} not found",
-        )
+        await profiles_collection.delete_one({"_id": ObjectId(id)})
+        return {"message": "Profile deleted successfully"}
+    except:
+        raise Exception(f"Profile with id {id} not found")
 
 
-async def upload_profile_photo(user_data: ProfileUpdate) -> ProfileOutput:
-    updated_user = await user_collection.find_one_and_update(
-        {"_id": ObjectId(user_data.id)},
+async def upload_profile_photo(profile_data: ProfilePhotoUpdate) -> ProfileOutput:
+    updated_profile = await profiles_collection.find_one_and_update(
+        {"_id": ObjectId(profile_data.id)},
         {"$set": {"photo": (
-            user_data.photo), "updated_at": user_data.updated_at}},
+            profile_data.photo), "updated_at": profile_data.updated_at}},
     )
-    if updated_user:
-        return ProfileOutput(**updated_user)
+    if updated_profile:
+        return ProfileOutput(**updated_profile)
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"User with id {id} not found",
@@ -64,14 +58,18 @@ async def upload_profile_photo(user_data: ProfileUpdate) -> ProfileOutput:
 
 
 async def get_profile_photo(id: str) -> bytes:
-    user = await user_collection.find_one({"_id": ObjectId(id)})
-    return user["photo"]
+    profile = await profiles_collection.find_one({"_id": ObjectId(id)})
+    try:
+        return profile["photo"]
+    except KeyError:
+        return {"message": "Profile photo not found"}
 
 
 async def get_all_profile_photos() -> List[ProfilePhotoInfo]:
     profiles = []
-    async for profile_data in user_collection.find():
+    async for profile_data in profiles_collection.find():
         if "photo" in profile_data:
             profile = ProfilePhotoInfo(**profile_data)
             profiles.append(profile)
     return profiles
+

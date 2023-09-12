@@ -5,10 +5,10 @@ from deepface import DeepFace
 from PIL import Image
 
 from app.api.database import get_all_profile_photos
-from app.api.schemas.profile import ProfileOutput
+from app.api.models.profile import ProfileOutput
 
 
-async def verify(input_photo) -> ProfileOutput: 
+async def verify(input_photo) -> ProfileOutput:
     all_photos = await get_all_profile_photos()
 
     input_image = Image.open(io.BytesIO(input_photo))

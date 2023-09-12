@@ -3,7 +3,7 @@ services:
   fastapi-app:
     build:
       context: .
-      dockerfile: docker/api/Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     depends_on:

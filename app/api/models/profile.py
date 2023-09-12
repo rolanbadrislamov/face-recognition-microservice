@@ -1,9 +1,8 @@
-import json
 from datetime import datetime
 from typing import Optional
 
 from bson import ObjectId
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import AliasChoices, BaseModel, EmailStr, Field
 
 
 class ProfileBase(BaseModel):
@@ -13,6 +12,10 @@ class ProfileBase(BaseModel):
     phone_number: str = None
     email: Optional[EmailStr] = None
 
+    class Config:
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
+
 
 class ProfileInput(ProfileBase):
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -20,25 +23,14 @@ class ProfileInput(ProfileBase):
 
 
 class ProfileOutput(ProfileInput):
-    id: ObjectId = Field(alias="_id")
-
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+    id: ObjectId = Field(validation_alias=AliasChoices('_id', 'id'))
 
 
-class ProfileUpdate(BaseModel):
+class ProfilePhotoUpdate(BaseModel):
     id: str
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     photo: bytes
 
-    class Config:
-        arbitrary_types_allowed = True
-
 
 class ProfilePhotoInfo(ProfileOutput):
     photo: bytes
-
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
