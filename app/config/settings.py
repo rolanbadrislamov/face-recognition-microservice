@@ -10,9 +10,9 @@ class Settings:
     title = "Face Recognition Microservice"
 
     app_settings = {
-        'mongodb_host': os.getenv('MONGODB_HOST'),
-        'mongodb_port': os.getenv('MONGODB_PORT'),
-        'db_name': os.getenv('MONGODB_DB_NAME'),
+        'mongodb_host': os.getenv('MONGO_HOST'),
+        'mongodb_port': os.getenv('MONGO_PORT'),
+        'db_name': os.getenv('MONGO_DB_NAME'),
         'db_username': os.getenv('MONGODB_USERNAME'),
         'db_password': os.getenv('MONGODB_PASSWORD'),
     }
