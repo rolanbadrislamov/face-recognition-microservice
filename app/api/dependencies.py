@@ -5,13 +5,16 @@ from bson import ObjectId
 from fastapi import HTTPException, UploadFile, status
 from PIL import Image
 
+from app.api.models.admin_user import AdminUserLogin
 from app.api.models.profile import ProfileInput, ProfileUpdate
-from app.config.settings import Settings
+from app.auth.auth_bearer import verify_password
+from app.config.settings import settings
 
 client = motor.motor_asyncio.AsyncIOMotorClient(
-    Settings.get_db_connection())
-database = client[Settings.app_settings["db_name"]]
-profiles_collection = database["profiles"]
+    settings.MONGODB_CONN_STRING)
+database = client[settings.MONGODB_DB]
+profiles_collection = database[settings.PROFILES_COLLECTION]
+admin_users_collection = database[settings.ADMIN_USERS_COLLECTION]
 
 
 async def profile_credentials_exists(profile_data: ProfileInput):
@@ -43,7 +46,14 @@ async def profile_credentials_update(id, profile_data: ProfileUpdate):
 
 
 async def profile_exists(id: str):
-    profile = await profiles_collection.find_one({"_id": ObjectId(id)})
+    try:
+        id = ObjectId(id)
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid profile id",
+        )
+    profile = await profiles_collection.find_one({"_id": id})
     if not profile:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -68,3 +78,13 @@ async def verify_photo(photo: UploadFile):
             detail="Photo verification failed. Check if it is a valid photo.",
         )
     return photo_data
+
+
+async def check_admin(admin_data: AdminUserLogin):
+    admin = await admin_users_collection.find_one({"username": admin_data.username})
+    if not admin or not verify_password(admin_data.password, admin["password"]):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Admin user not found",
+        )
+    return admin

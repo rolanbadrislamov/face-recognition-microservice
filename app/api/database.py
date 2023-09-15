@@ -3,15 +3,18 @@ from typing import List
 import motor.motor_asyncio
 from bson.objectid import ObjectId
 
+from app.api.models.admin_user import AdminUser
 from app.api.models.profile import (ProfileInput, ProfileOutput,
                                     ProfilePhotoInfo, ProfilePhotoUpdate,
                                     ProfileUpdate)
-from app.config.settings import Settings
+from app.auth.auth_bearer import hash_password
+from app.config.settings import settings
 
 client = motor.motor_asyncio.AsyncIOMotorClient(
-    Settings.get_db_connection())
-database = client[Settings.app_settings["db_name"]]
-profiles_collection = database["profiles"]
+    settings.MONGODB_CONN_STRING)
+database = client[settings.MONGODB_DB]
+profiles_collection = database[settings.PROFILES_COLLECTION]
+admin_users_collection = database[settings.ADMIN_USERS_COLLECTION]
 
 
 async def retrieve_profile(id: str) -> ProfileOutput:
@@ -78,3 +81,9 @@ async def modify_profile(id, profile_data: ProfileUpdate) -> ProfileOutput:
         return_document=True
     )
     return ProfileOutput(**updated_profile)
+
+
+async def create_admin_user(admin_data: AdminUser):
+    password = hash_password(admin_data.password)
+    await admin_users_collection.insert_one({"fullname": admin_data.fullname, "username": admin_data.username, "password": password})
+    return admin_data

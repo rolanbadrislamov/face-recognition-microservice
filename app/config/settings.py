@@ -9,23 +9,20 @@ class Settings:
     version = "0.1.0"
     title = "Face Recognition Microservice"
 
-    app_settings = {
-        'mongodb_host': os.getenv('MONGO_HOST'),
-        'mongodb_port': os.getenv('MONGO_PORT'),
-        'db_name': os.getenv('MONGO_DB_NAME'),
-        'db_username': os.getenv('MONGODB_USERNAME'),
-        'db_password': os.getenv('MONGODB_PASSWORD'),
-    }
+    MONGODB_HOST: str = os.environ.get('MONGODB_HOST')
+    MONGODB_PORT: int = os.environ.get('MONGODB_PORT')
+    MONGODB_USER: str = os.environ.get('MONGODB_USER')
+    MONGODB_PASSWORD: str = os.environ.get('MONGODB_PASSWORD')
+    MONGODB_DB: str = os.environ.get('MONGODB_DB')
+    MONGODB_CONN_STRING = (
+        f"mongodb://{MONGODB_USER}:{MONGODB_PASSWORD}@{MONGODB_HOST}:{MONGODB_PORT}"
+    )
 
-    @classmethod
-    def validate(cls):
-        if not cls.app_settings['mongodb_host']:
-            raise ValueError("MONGODB_HOST environment variable is not set.")
-        if not cls.app_settings['mongodb_port']:
-            raise ValueError("MONGODB_PORT environment variable is not set.")
-        if not cls.app_settings['db_name']:
-            raise ValueError("MONGO_DB_NAME environment variable is not set.")
+    PROFILES_COLLECTION = 'profiles'
+    ADMIN_USERS_COLLECTION = 'admin_users'
 
-    @classmethod
-    def get_db_connection(cls):
-        return f'mongodb://{cls.app_settings["mongodb_host"]}:{cls.app_settings["mongodb_port"]}'
+    SECRET_KEY: str = os.environ.get('SECRET_KEY')
+    ALGORITHM = "HS256"
+
+
+settings = Settings()
