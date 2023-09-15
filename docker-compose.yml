@@ -1,17 +1,27 @@
-version: "3.8"
-services:
-  fastapi-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    depends_on:
-      - mongodb
-    environment:
-      MONGO_URI: "mongodb://mongodb:27017"
+version: '3.8'
 
-  mongodb:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
+services:
+    mongodb:
+        image: mongo:latest
+        environment:
+            MONGO_DB: face-recognition
+            MONGO_INITDB_ROOT_USERNAME: admin
+            MONGO_INITDB_ROOT_PASSWORD: admin
+        ports:
+            - 27017:27017
+        volumes:
+            - mongodb:/data/db
+
+    fastapi:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        env_file:
+            - .env
+        ports:
+            - 8000:8000
+        depends_on: 
+            - mongodb
+
+volumes:
+    mongodb:

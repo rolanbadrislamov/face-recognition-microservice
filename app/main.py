@@ -1,15 +1,14 @@
 from fastapi import FastAPI
 
-from app.api.routers.profiles import router as UserRouter
-from app.config.settings import Settings
+from app.api.routers.admin_users import router as AdminUsersRouter
+from app.api.routers.profiles import router as ProfilesRouter
 
 app = FastAPI()
 
-try:
-    Settings.validate()
-except ValueError as e:
-    print(f"Error: {e}")
-app.include_router(UserRouter, tags=["Profiles"])
+
+app.include_router(ProfilesRouter, tags=["Profiles"], prefix="/profiles")
+app.include_router(AdminUsersRouter, tags=[
+                   "Admin Users"], prefix="/admins")
 
 
 @app.get("/", tags=["ROOT"])
