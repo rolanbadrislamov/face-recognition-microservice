@@ -10,11 +10,11 @@ class Settings:
     title = "Face Recognition Microservice"
 
     MONGODB_HOST: str = os.environ.get('MONGODB_HOST')
-    MONGODB_PORT: int = os.environ.get('MONGODB_PORT')
+    MONGODB_PORT: str = os.environ.get('MONGODB_PORT')
     MONGODB_USER: str = os.environ.get('MONGODB_USER')
     MONGODB_PASSWORD: str = os.environ.get('MONGODB_PASSWORD')
     MONGODB_DB: str = os.environ.get('MONGODB_DB')
-    MONGODB_CONN_STRING = (
+    MONGODB_CONN_STRING: str = (
         f"mongodb://{MONGODB_USER}:{MONGODB_PASSWORD}@{MONGODB_HOST}:{MONGODB_PORT}"
     )
 
