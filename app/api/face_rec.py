@@ -8,7 +8,8 @@ from app.api.database import get_all_profile_photos
 from app.api.models.profile import ProfileOutput
 
 
-async def find_profile(input_image) -> ProfileOutput:
+async def find_profile(input_image: bytes) -> ProfileOutput:
+
     all_photos = await get_all_profile_photos()
 
     input_image = Image.open(io.BytesIO(input_image))
@@ -21,7 +22,7 @@ async def find_profile(input_image) -> ProfileOutput:
         profile_image_arr = np.array(profile_image)
 
         result = DeepFace.verify(
-            input_image_arr, profile_image_arr, model_name="Facenet")
+            input_image_arr, profile_image_arr, model_name="VGG-Face")
         if result["verified"]:
             return ProfileOutput(**profile.model_dump())
-    return {"message": "Profile not found"}
+    raise ValueError("No profile found. Check your input image.")

@@ -23,13 +23,13 @@ async def create_profile(profile_data: ProfileInput = Depends(profile_credential
     return profile
 
 
-@router.get("/get-all-profiles")
+@router.get("/all-profiles")
 async def get_all_profiles(token: str = Depends(JWTBearer())):
     users = await retrieve_profiles()
     return users
 
 
-@router.get("/get-profile/{id}")
+@router.get("/profile/{id}")
 async def get_profile(id: str = Depends(profile_exists), token: str = Depends(JWTBearer())):
     try:
         profile = await retrieve_profile(id)
@@ -40,21 +40,21 @@ async def get_profile(id: str = Depends(profile_exists), token: str = Depends(JW
         )
 
 
-@router.get("/get-profile-photo/{id}")
-async def get_photo(id: str = Depends(profile_exists),token: str = Depends(JWTBearer())):
+@router.get("/profile-photo/{id}")
+async def get_photo(id: str = Depends(profile_exists), token: str = Depends(JWTBearer())):
     profile_photo_bytes = await get_profile_photo(id)
     if type(profile_photo_bytes) == bytes:
         return StreamingResponse(BytesIO(profile_photo_bytes), media_type="image/jpeg")
     return profile_photo_bytes
 
 
-@router.delete("/delete-profile/{id}")
+@router.delete("/profile/{id}")
 async def delete_profile(id: str = Depends(profile_exists), token: str = Depends(JWTBearer())):
     await remove_profile(id)
     return {"message": "Profile deleted successfully"}
 
 
-@router.patch("/upload-profile-photo{id}")
+@router.patch("/profile-photo{id}")
 async def upload_photo(id: str, photo: UploadFile = File(...), token: str = Depends(JWTBearer())):
     await profile_exists(id)
     photo = await verify_photo(photo)
@@ -66,11 +66,17 @@ async def upload_photo(id: str, photo: UploadFile = File(...), token: str = Depe
 
 @router.post("/verify-profile")
 async def verify_profile(photo: UploadFile = Depends(verify_photo), token: str = Depends(JWTBearer())):
-    result = await find_profile(photo)
-    return result
+    try:
+        result = await find_profile(photo)
+        if result:
+            return result
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Profile not found. Please confirm that the picture is a face photo"
+        )
 
 
-@router.patch("/update-profile{id}")
+@router.patch("/profile{id}")
 async def update_profile(profile_data: ProfileUpdate, id: str = Depends(profile_exists), token: str = Depends(JWTBearer())):
     await profile_credentials_update(id=id, profile_data=profile_data)
     profile = await modify_profile(id, profile_data)

@@ -47,13 +47,13 @@ async def profile_credentials_update(id, profile_data: ProfileUpdate):
 
 async def profile_exists(id: str):
     try:
-        id = ObjectId(id)
+        profile_id = ObjectId(id)
     except:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid profile id",
         )
-    profile = await profiles_collection.find_one({"_id": id})
+    profile = await profiles_collection.find_one({"_id": profile_id})
     if not profile:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
