@@ -36,7 +36,7 @@ git clone https://github.com/rolanbadrislamov/face-recognition-microservice.git
 docker-compose up --build
 ```
 
-This will start the FastAPI application and a MongoDB container. You can access the microservice at http://localhost:8000.
+This will start the FastAPI application and a MongoDB container. You can access the microservice at http://localhost:8000
 
 Make sure to customize the configuration and environment variables as needed for your specific deployment.
 
