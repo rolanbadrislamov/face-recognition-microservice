@@ -1,2 +1,4 @@
+# Ignore Python bytecode cache
 __pycache__
 venv
+# Ignore virtual environment
