@@ -4,6 +4,7 @@ python-multipart==0.0.6
 pydantic==2.3.0
 email-validator==2.0.0.post2
 motor==3.3.0
+tensorflow==2.15.1
 deepface==0.0.79
 python-dotenv==1.0.0
 PyJWT==2.8.0
