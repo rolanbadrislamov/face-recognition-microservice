@@ -85,5 +85,5 @@ async def modify_profile(id, profile_data: ProfileUpdate) -> ProfileOutput:
 
 async def create_admin_user(admin_data: AdminUser):
     password = hash_password(admin_data.password)
-    await admin_users_collection.insert_one({"fullname": admin_data.fullname, "username": admin_data.username, "password": password})
+    await admin_users_collection.insert_one({"email": admin_data.email, "username": admin_data.username, "password": password})
     return admin_data

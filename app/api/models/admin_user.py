@@ -1,12 +1,12 @@
 from pydantic import BaseModel, Field
-
+from pydantic import BaseModel, EmailStr
 
 class AdminUser(BaseModel):
-    fullname: str = Field(...)
+    email: EmailStr = Field(...)
     username: str = Field(...)
     password: str = Field(...)
 
 
 class AdminUserLogin(BaseModel):
-    username: str = Field(...)
+    email: EmailStr = Field(...)
     password: str = Field(...)

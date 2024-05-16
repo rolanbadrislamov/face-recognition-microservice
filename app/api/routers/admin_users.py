@@ -9,12 +9,12 @@ from app.auth.auth_handler import signJWT
 router = APIRouter()
 
 
-@router.post("/signup")
+@router.post("/register")
 async def create_admin(admin_data: AdminUser = Body(...)):
     created_admin = await create_admin_user(admin_data)
-    return signJWT(created_admin.username)
+    return signJWT(created_admin.email)
 
 
 @router.post("/login")
 async def login_admin(admin_data: AdminUserLogin = Depends(check_admin)):
-    return signJWT(admin_data["username"])
+    return signJWT(admin_data["email"])
