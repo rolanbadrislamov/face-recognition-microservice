@@ -81,7 +81,7 @@ async def verify_photo(photo: UploadFile):
 
 
 async def check_admin(admin_data: AdminUserLogin):
-    admin = await admin_users_collection.find_one({"username": admin_data.username})
+    admin = await admin_users_collection.find_one({"email": admin_data.email})
     if not admin or not verify_password(admin_data.password, admin["password"]):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
